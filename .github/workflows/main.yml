@@ -15,7 +15,7 @@ jobs:
 
       - name: Extract Android project
         run: |
-          unzip -o AnVaTap-V1-GitHub.zip
+          unzip -o AnVaTap-V1-GitHub-V2.zip
           cd AnVaTapV1
                     sed -i '/id("org.jetbrains.kotlin.android") version "2.0.21" apply false/a\    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false' build.gradle.kts
           sed -i '/id("org.jetbrains.kotlin.android")/a\    id("org.jetbrains.kotlin.plugin.compose")' app/build.gradle.kts
