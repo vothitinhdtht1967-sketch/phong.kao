@@ -1,44 +1,40 @@
-name: Build Android APK
+name: Build Android APK V2
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract Android project
+      - name: Extract Android V2
         run: |
-          unzip -o AnVaTap-V1-GitHub-V2.zip
-          cd AnVaTapV1
-                    sed -i '/id("org.jetbrains.kotlin.android") version "2.0.21" apply false/a\    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false' build.gradle.kts
-          sed -i '/id("org.jetbrains.kotlin.android")/a\    id("org.jetbrains.kotlin.plugin.compose")' app/build.gradle.kts
-          sed -i '67s/\.roundToInt()/\.toInt()/g' app/src/main/java/com/anvatap/app/MainActivity.kt
-          sed -i '70s/^/@OptIn(ExperimentalMaterial3Api::class) /' app/src/main/java/com/anvatap/app/MainActivity.kt
-          sed -i '73s/,save,/,::save,/' app/src/main/java/com/anvatap/app/MainActivity.kt
+          rm -rf AnVaTapV2
+          unzip -q AnVaTap-V2-Upgraded.zip
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: "8.9"
 
-      - name: Build APK
-        working-directory: AnVaTapV1
+      - name: Build APK V2
+        working-directory: AnVaTapV2
         run: gradle assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Upload APK V2
         uses: actions/upload-artifact@v4
         with:
-          name: AnVaTap-debug
-          path: AnVaTapV1/app/build/outputs/apk/debug/app-debug.apk
+          name: AnVaTap-V2-debug
+          path: AnVaTapV2/app/build/outputs/apk/debug/app-debug.apk
