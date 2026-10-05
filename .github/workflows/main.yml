@@ -17,8 +17,33 @@ jobs:
         run: |
           rm -rf AnVaTapV2
           unzip -q AnVaTap-V2-Upgraded.zip
-          echo "Extracted files:"
+          echo "Source extracted"
           find AnVaTapV2 -maxdepth 2 -type f | head -50
+
+      - name: Fix V2 Kotlin source
+        working-directory: AnVaTapV2
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("app/src/main/java/com/anvatap/app/MainActivity.kt")
+          s = p.read_text()
+
+          # Fix KeyboardOptions import
+          s = s.replace(
+              "import androidx.compose.ui.text.input.KeyboardOptions",
+              "import androidx.compose.foundation.text.KeyboardOptions"
+          )
+
+          # Fix Double/Int calculation for carb target
+          s = s.replace(
+              "val cg=((goal-pg*4-fg*9)/4).coerceAtLeast(0.0).roundToInt()",
+              "val cg=((goal-pg*4-fg*9)/4.0).coerceAtLeast(0.0).roundToInt()"
+          )
+
+          p.write_text(s)
+          print("Kotlin source fixes applied")
+          PY
 
       - name: Fix Compose Compiler Plugin
         working-directory: AnVaTapV2
@@ -31,7 +56,7 @@ jobs:
           }
           EOF
 
-      - name: Fix App Compose Plugin
+      - name: Enable Compose Compiler Plugin
         working-directory: AnVaTapV2/app
         run: |
           python3 - <<'PY'
@@ -40,26 +65,14 @@ jobs:
           p = Path("build.gradle.kts")
           s = p.read_text()
 
-          old = '''plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-          }'''
-
-          new = '''plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-              id("org.jetbrains.kotlin.plugin.compose")
-          }'''
-
-          if old in s:
-              s = s.replace(old, new)
-          elif 'id("org.jetbrains.kotlin.plugin.compose")' not in s:
+          if 'id("org.jetbrains.kotlin.plugin.compose")' not in s:
               s = s.replace(
                   'id("org.jetbrains.kotlin.android")',
                   'id("org.jetbrains.kotlin.android")\n    id("org.jetbrains.kotlin.plugin.compose")'
               )
 
           p.write_text(s)
+          print("Compose plugin enabled")
           PY
 
       - name: Set up JDK 17
